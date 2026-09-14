@@ -1,0 +1,520 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Savings & Cashback Calculator Prototype</title>
+<style>
+  :root{
+    --page:#f6f6f7; --side:#f6f6f7; --card:#ffffff; --ink:#16181c; --muted:#5d6472; --line:#e3e5e9; --seg:#d6dbe3;
+    --accent:#16181c; --soft:#eef1f6; --blue:#2f5bea; --good:#15784a; --good-soft:#e4f3ea; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  button{font:inherit;color:inherit}
+  .banner{background:var(--ink);color:#fff;font-size:12px;padding:6px 16px;text-align:center}
+
+  /* Prototype variant switcher (outside the product UI) */
+  .variantbar{background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+  .variantbar .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+  .vseg{display:inline-flex;background:#eceef2;border-radius:10px;padding:3px;max-width:100%;overflow-x:auto}
+  .vseg button{border:0;background:none;padding:7px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#3a3e46;white-space:nowrap}
+  .vseg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+  .variantbar .cap{font-size:13px;color:var(--muted);max-width:560px}
+
+  .shell{display:flex;align-items:flex-start}
+  .side{width:290px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:14px 12px 14px 14px;display:flex;flex-direction:column;background:var(--side)}
+  .org{display:flex;align-items:center;gap:10px;padding:4px 4px 16px}
+  .logo{position:relative;width:38px;height:38px;border-radius:9px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0}
+  .logo .av{position:absolute;right:-6px;bottom:-6px;width:20px;height:20px;border-radius:50%;background:#e03131;color:#fff;font-size:8.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--side)}
+  .org-name{flex:1;min-width:0;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .icon-btn{background:none;border:0;padding:6px;border-radius:8px;cursor:pointer;display:flex;color:var(--ink)}
+  .icon-btn:hover{background:#ebecef}
+  .send{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;font-weight:500;font-size:16px;cursor:pointer;margin-bottom:18px}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav-item{display:flex;align-items:center;gap:14px;width:100%;background:none;border:0;border-radius:8px;padding:10px 14px;font-size:16px;cursor:pointer;text-align:left;color:#2b2e35}
+  .nav-item:hover{background:#ebecef}
+  .nav-item.active{background:#e6e7ea;font-weight:500;color:var(--ink)}
+  .nav-item .chev{margin-left:auto;display:flex}
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .side-foot{margin-top:auto;display:flex;justify-content:space-between;padding-top:16px}
+  .round{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .round.sq{border-radius:10px}
+  svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  .mainwrap{flex:1;min-width:0;padding:14px 18px 14px 4px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:36px;min-height:calc(100vh - 56px)}
+  .mobilebar{display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--side);border-bottom:1px solid var(--line)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:18px}
+  h1{font-size:26px;line-height:1.2;margin:4px 0 8px;letter-spacing:-.015em;font-weight:600}
+  h2{font-size:19px;line-height:1.3;margin:0 0 6px;font-weight:600}
+  p{margin:0 0 10px}
+  .eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.lg{padding:14px 28px;font-size:16px}
+  .link{background:none;border:0;color:var(--ink);text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
+  .foot{font-size:12.5px;color:var(--muted);margin:22px 0 0}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:10;max-width:90vw}
+  select,input[type=number]{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+
+  /* Welcome Guide cards */
+  .guide-card{padding:40px 38px 34px;margin-bottom:48px}
+  .guide-head{display:flex;align-items:flex-start;gap:24px}
+  .guide-head .txt{flex:1;min-width:0;padding-top:6px}
+  .guide-head h2{font-size:25px;font-weight:500;margin:0 0 8px}
+  .guide-head p{font-size:16.5px;color:#2b2e35;margin:0}
+  .continue{background:#16181c;color:#fff;border:0;border-radius:8px;padding:11px 16px 11px 18px;font-size:16px;font-weight:500;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.25);white-space:nowrap}
+  .segs{display:grid;gap:16px;margin-top:30px}
+  .segs span{height:3px;border-radius:2px;background:var(--seg)}
+  .segs span.on{background:#16181c;height:4px}
+  .steps-left{font-size:14px;color:#3a3e46;margin-top:14px}
+
+  /* Baseline welcome hero (control) */
+  .wh{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,505px);gap:40px;align-items:center;padding:42px 44px;margin-bottom:48px}
+  .wh h1{font-size:36px;font-weight:500;margin:0 0 22px;letter-spacing:-.01em}
+  .wh .intro{font-size:16.5px;color:#2b2e35;margin:0 0 22px;max-width:620px}
+  .wh .chat{display:flex;align-items:center;gap:8px;font-size:16.5px;margin:0 0 20px}
+  .demo{position:relative;aspect-ratio:505/316;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#17307f 0%,#2346c9 55%,#2f5bea 100%);color:#fff;padding:18px 20px}
+  .demo-top{display:flex;align-items:center;gap:12px;font-size:17px;min-width:0}
+  .demo-top div{min-width:0}
+  .demo-top b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .demo-logo{width:40px;height:40px;border-radius:50%;background:#111;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+  .demo-title{position:absolute;left:20px;top:30%;font-size:clamp(26px,3.6vw,48px);font-weight:800;line-height:1.04}
+  .play{position:absolute;left:52%;top:50%;transform:translate(-50%,-50%);width:84px;height:58px;border:0;border-radius:14px;background:#ff0033;color:#fff;font-size:24px;cursor:pointer}
+  .demo-watch{position:absolute;right:16px;bottom:14px;background:rgba(0,0,0,.55);padding:8px 16px;border-radius:999px;font-weight:600;font-size:15px}
+
+  /* Calculators */
+  .calc{padding:38px 40px 30px;margin-bottom:24px}
+  .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:40px;align-items:start}
+  .calc h1{font-size:30px;margin:6px 0 8px}
+  .calc .lead{font-size:16px;margin:0 0 6px}
+  .field{padding:16px 0 4px}
+  .field-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .field-top label{font-size:15px;color:#2b2e35}
+  .numwrap{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;padding-left:10px;font-size:14px;color:var(--muted);background:#fff}
+  .numwrap input{border:0;width:116px;padding:7px 8px;text-align:right;background:transparent}
+  .numwrap input:focus{outline:none}
+  .numwrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,91,234,.14)}
+  input[type=range]{width:100%;accent-color:var(--blue);margin:12px 0 2px}
+  .thresh{position:relative;height:8px;background:var(--line);border-radius:6px;margin:10px 0 6px}
+  .thresh span{display:block;height:100%;border-radius:6px;background:#aab4cc}
+  .thresh.over span{background:var(--blue)}
+  .thresh i{position:absolute;left:50%;top:-4px;width:2px;height:16px;background:var(--ink);border-radius:1px}
+  .thresh-note{font-size:13px;color:var(--muted)}
+  .calc-summary{background:var(--soft);border-radius:14px;padding:24px}
+  .total-num{font-size:42px;font-weight:700;letter-spacing:-.02em;color:var(--blue);line-height:1.1;margin:4px 0 6px}
+  .rule{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .sum-row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:#3a3e46;padding:9px 0;border-top:1px solid #dde2ea}
+  .sum-row b{color:var(--ink);white-space:nowrap}
+  .calc-summary .btn{width:100%;margin-top:18px}
+  .sum-note{font-size:12.5px;color:var(--muted);margin-top:10px;text-align:center}
+
+  .funds{padding:28px 32px;margin-bottom:48px;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,91,234,.12)}
+  .funds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0 10px}
+  .funds-grid label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  .funds-grid select,.funds-grid input{width:100%}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .success{background:var(--good-soft);border-radius:10px;padding:14px 16px;margin-top:6px}
+  .spacer{height:24px}
+
+  @media (max-width:1180px){
+    .wh{grid-template-columns:1fr;gap:26px}
+    .demo{max-width:505px}
+  }
+  @media (max-width:1200px){
+    .calc-grid{grid-template-columns:1fr;gap:24px}
+    .calc-summary{max-width:520px}
+  }
+  @media (max-width:900px){
+    .side{display:none}
+    .mobilebar{display:flex}
+    .mainwrap{padding:10px}
+    .panel{padding:14px;min-height:auto}
+    .guide-card{padding:22px;margin-bottom:22px}
+    .wh{padding:22px;margin-bottom:22px}
+    .wh h1{font-size:26px;margin-bottom:14px}
+    .guide-head{flex-wrap:wrap;gap:14px;align-items:center}
+    .guide-head .txt{flex-basis:100%;order:3;padding-top:0}
+    .guide-head .continue{margin-left:auto}
+    .guide-head h2{font-size:21px}
+    .guide-head svg.illus{width:56px;height:56px}
+    .calc{padding:22px}
+    .calc h1{font-size:24px}
+    .funds{padding:22px}
+    .funds-grid{grid-template-columns:1fr}
+    .variantbar .cap{text-align:center}
+  }
+</style>
+
+<div class="banner">Concept prototype for a Float Growth PM case study · illustrative data · not an official Float product</div>
+<div class="variantbar" id="variantbar"></div>
+<div class="mobilebar"><div class="logo">f<span class="av">PR</span></div><b>Larkspur Creative</b></div>
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <div class="mainwrap"><main class="panel" id="app"></main></div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const ICONS = {
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>',
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  requests:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+  card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
+  reimb:'<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M7 3h10"/>',
+  bill:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/>',
+  send:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21a2 2 0 0 1 2-2h13"/>',
+  chart:'<path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/>',
+  wallet:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M5 6V4h12v2M16 13h2"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  help:'<circle cx="12" cy="12" r="9.5"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  collapse:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 9l-3 3 3 3"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  right:'<path d="m9 6 6 6-6 6"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  updown:'<path d="m8 9 4-4 4 4M8 15l4 4 4-4"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+const NAV = [
+  [['star','Welcome Guide','home'], ['home','Overview'], ['requests','Requests'], ['list','Transactions']],
+  [['card','Cards',null,true], ['reimb','Reimbursements'], ['bill','Bill Pay'], ['send','Payments']],
+  [['book','Accounting',null,true], ['chart','Reporting']],
+  [['wallet','Accounts']],
+  [['user','Users'], ['gear','Settings']]
+];
+
+function renderSide(){
+  document.getElementById('side').innerHTML = `
+    <div class="org">
+      <div class="logo">f<span class="av">PR</span></div>
+      <div class="org-name">Larkspur Creative</div>
+      <button class="icon-btn" data-action="stub" aria-label="Switch organization">${icon('updown')}</button>
+      <button class="icon-btn" data-action="stub" aria-label="Search">${icon('search')}</button>
+    </div>
+    <button class="send" data-action="stub">${icon('send')} Send Money</button>
+    ${NAV.map((group, gi) => `<div class="nav">${group.map(([ic, label, to, chev]) =>
+      `<button class="nav-item ${to === 'home' ? 'active' : ''}" data-action="${to ? 'home' : 'stub'}">${icon(ic)}<span>${label}</span>${chev ? `<span class="chev">${icon('down')}</span>` : ''}</button>`
+    ).join('')}</div>${gi < NAV.length - 1 ? '<div class="divider"></div>' : ''}`).join('')}
+    <div class="side-foot">
+      <button class="round" data-action="stub" aria-label="Help">${icon('help')}</button>
+      <button class="round sq" data-action="stub" aria-label="Collapse sidebar">${icon('collapse')}</button>
+    </div>`;
+}
+
+const BUILDING = `<svg class="illus" width="76" height="76" viewBox="0 0 64 64" aria-hidden="true">
+  <rect x="7" y="24" width="20" height="34" fill="#fff" stroke="#2b3a55" stroke-width="2.2"/>
+  <rect x="27" y="8" width="30" height="50" fill="#dde5f0" stroke="#2b3a55" stroke-width="2.2"/>
+  ${[14,23,32,41].map(y => `<rect x="33" y="${y}" width="6" height="5" fill="#2b3a55"/><rect x="45" y="${y}" width="6" height="5" fill="#2b3a55"/>`).join('')}
+  <rect x="12" y="31" width="4" height="5" fill="#2b3a55"/><rect x="12" y="41" width="4" height="5" fill="#2b3a55"/>
+  <rect x="38" y="49" width="8" height="9" fill="#fff" stroke="#2b3a55" stroke-width="2"/>
+</svg>`;
+const EXPLORE = `<svg class="illus" width="76" height="76" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="#2b3a55" stroke-width="2.2" stroke-linejoin="round">
+  <rect x="22" y="16" width="36" height="22" rx="2" fill="#dde5f0"/><path d="M22 23h36"/>
+  <rect x="6" y="30" width="36" height="22" rx="2" fill="#fff"/><path d="M6 37h36"/>
+  <path d="M12 6v8M8 10h8" stroke-linecap="round"/><path d="M52 44v8M48 48h8" stroke-linecap="round"/>
+</svg>`;
+
+/* ---------- Float rules used by the calculators ---------- */
+const INTEREST_RATE = 0.025;       // base rate on CAD and USD balances (12-month promo boost deliberately excluded)
+const FLOAT_FX = 0.0025;           // Float FX fee
+const BANK_FX = 0.03;              // Float's published big-bank FX average
+const CASHBACK_RATE = 0.01;        // 1% cashback
+const CASHBACK_THRESHOLD = 25000;  // on monthly card spend above $25,000, per currency
+const USD_TO_CAD = 1.37;           // illustrative conversion for the combined totals only
+
+/* ---------- State ---------- */
+const VARIANTS = [
+  {id:'baseline', label:'Baseline (control)', cap:"Control: today's Welcome Guide, with a welcome message and demo video at the top."},
+  {id:'savings', label:'Recipe: Savings calculator', cap:"Recipe: the welcome message is replaced with a savings calculator, pre-filled with the business's own numbers."},
+  {id:'cashback', label:'Nice-to-have: Cashback calculator', cap:"Nice-to-have: the same spot shows a cashback calculator that follows Float's 1% over $25,000 a month rule."}
+];
+const S = { variant:'baseline', funds:null };
+const C = { cad:150000, usd:25000, fx:58000, spendCad:32000, spendUsd:12000 };
+const F = { cur:'CAD', amt:150000 };
+
+const fmt = n => '$' + Math.round(n).toLocaleString('en-CA');
+const fmtUsd = n => 'US$' + Math.round(n).toLocaleString('en-CA');
+const fmtCur = (n, cur) => cur === 'USD' ? fmtUsd(n) : fmt(n);
+
+function calcNumbers(){
+  const cadInt = C.cad * INTEREST_RATE;
+  const usdInt = C.usd * INTEREST_RATE;
+  const fxSave = C.fx * 12 * (BANK_FX - FLOAT_FX);
+  const cbCad = Math.max(0, C.spendCad - CASHBACK_THRESHOLD) * CASHBACK_RATE * 12;
+  const cbUsd = Math.max(0, C.spendUsd - CASHBACK_THRESHOLD) * CASHBACK_RATE * 12;
+  return {cadInt, usdInt, fxSave, cbCad, cbUsd,
+    save: cadInt + usdInt * USD_TO_CAD + fxSave,
+    cb: cbCad + cbUsd * USD_TO_CAD};
+}
+
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 2600); }
+
+/* ---------- Variant switcher ---------- */
+function renderVariantBar(){
+  const cur = VARIANTS.find(v => v.id === S.variant);
+  document.getElementById('variantbar').innerHTML = `
+    <span class="lbl">Prototype view</span>
+    <div class="vseg" role="tablist" aria-label="Prototype view">
+      ${VARIANTS.map(v => `<button role="tab" aria-selected="${v.id === S.variant}" class="${v.id === S.variant ? 'on' : ''}" data-action="variant" data-id="${v.id}">${v.label}</button>`).join('')}
+    </div>
+    <span class="cap">${cur.cap}</span>`;
+}
+
+/* ---------- Shared Welcome Guide cards ---------- */
+function segs(total, on){
+  return `<div class="segs" style="grid-template-columns:repeat(${total},1fr)">${Array.from({length: total}, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</div>`;
+}
+
+function guideCards(){
+  return `
+  <section class="card guide-card">
+    <div class="guide-head">
+      ${BUILDING}
+      <div class="txt">
+        <h2>Verify Your Business</h2>
+        <p>Submit your business information for verification today and get approved in as little as <b>one business day</b>.</p>
+      </div>
+      <button class="continue" data-action="stub">Continue ${icon('right')}</button>
+    </div>
+    ${segs(5, 1)}
+    <div class="steps-left">4 steps left</div>
+  </section>
+
+  <section class="card guide-card">
+    <div class="guide-head">
+      ${EXPLORE}
+      <div class="txt">
+        <h2>Explore Float</h2>
+        <p><b>Curious where to start?</b> Complete the steps below to explore Float and get set up and start spending.</p>
+      </div>
+    </div>
+    ${segs(4, 0)}
+    <div class="steps-left">4 steps left</div>
+  </section>`;
+}
+
+/* ---------- Baseline (control) ---------- */
+function baselineHome(){
+  return `
+  <section class="card wh">
+    <div>
+      <h1>Welcome to Float, Priya!</h1>
+      <p class="intro"><b>The future of finance is here.</b> Manage your spend, track expenses, and pay bills — all in one easy-to-use platform.</p>
+      <p class="chat">${icon('chat')} Have questions? <button class="link" data-action="stub"><b>Let's Chat!</b></button></p>
+      <p class="small muted" style="margin:0">You can also visit our <button class="link small" data-action="stub">Help Centre</button> for more information and how-to guides.</p>
+    </div>
+    <div class="demo" role="img" aria-label="Quick Float Demo video thumbnail">
+      <div class="demo-top"><span class="demo-logo">f</span><div><b>2026 Demo of Float's Business Finance Platform</b><span class="small">Float</span></div></div>
+      <div class="demo-title">Quick<br>Float<br>Demo</div>
+      <button class="play" data-action="stub" aria-label="Play demo video">▶</button>
+      <div class="demo-watch">Watch on YouTube</div>
+    </div>
+  </section>
+  ${guideCards()}`;
+}
+
+/* ---------- Calculators ---------- */
+function field(key, label, max, step, prefix){
+  return `<div class="field">
+    <div class="field-top">
+      <label for="n-${key}">${label}</label>
+      <span class="numwrap">${prefix}<input id="n-${key}" type="number" min="0" max="${max}" step="${step}" value="${C[key]}" data-field="${key}" data-kind="num"></span>
+    </div>
+    <input type="range" min="0" max="${max}" step="${step}" value="${Math.min(C[key], max)}" data-field="${key}" data-kind="range" aria-label="${label}">
+  </div>`;
+}
+
+function savingsCalc(){
+  return `
+  <section class="card calc">
+    <div class="calc-grid">
+      <div>
+        <div class="eyebrow">Savings calculator</div>
+        <h1>See what your cash could earn at Float</h1>
+        <p class="lead muted">Pre-filled from your signup. Adjust anything to match your business.</p>
+        ${field('cad', 'Average CAD balance', 1000000, 1000, '$')}
+        ${field('usd', 'Average USD balance', 1000000, 1000, 'US$')}
+        ${field('fx', 'USD transfers per month', 500000, 1000, '$')}
+      </div>
+      <aside class="calc-summary">
+        <div class="small muted">Estimated per year</div>
+        <div class="total-num" id="out-save"></div>
+        <div class="rule">in interest and FX savings</div>
+        <div class="sum-row"><span>Interest on CAD</span><b id="out-cadInt"></b></div>
+        <div class="sum-row"><span>Interest on USD</span><b id="out-usdInt"></b></div>
+        <div class="sum-row"><span>FX savings vs. a big bank</span><b id="out-fxSave"></b></div>
+        <button class="btn lg" data-action="addfunds">Add funds</button>
+        <div class="sum-note">Interest starts the day your funds land.</div>
+      </aside>
+    </div>
+    <p class="foot">Estimates only. Interest is 2.5% on CAD and USD balances, paid monthly, and rates can change. FX savings compare Float's 0.25% with a big-bank average of about 3%. The total converts USD at an illustrative 1.37.</p>
+  </section>`;
+}
+
+function cashbackCalc(){
+  return `
+  <section class="card calc">
+    <div class="calc-grid">
+      <div>
+        <div class="eyebrow">Cashback calculator</div>
+        <h1>See what your card spend could earn back</h1>
+        <p class="lead muted">Pre-filled from your signup. Adjust anything to match your business.</p>
+        ${field('spendCad', 'Monthly card spend in CAD', 200000, 500, '$')}
+        <div class="thresh" id="bar-spendCad" aria-hidden="true"><span></span><i></i></div>
+        <div class="thresh-note" id="note-spendCad"></div>
+        ${field('spendUsd', 'Monthly card spend in USD', 200000, 500, 'US$')}
+        <div class="thresh" id="bar-spendUsd" aria-hidden="true"><span></span><i></i></div>
+        <div class="thresh-note" id="note-spendUsd"></div>
+      </div>
+      <aside class="calc-summary">
+        <div class="small muted">Estimated cashback per year</div>
+        <div class="total-num" id="out-cb"></div>
+        <div class="rule">1% on card spend above $25,000 a month, per currency</div>
+        <div class="sum-row"><span>On CAD spend</span><b id="out-cbCad"></b></div>
+        <div class="sum-row"><span>On USD spend</span><b id="out-cbUsd"></b></div>
+        <button class="btn lg" data-action="addfunds">Add funds</button>
+        <div class="sum-note">Your Float cards spend from this balance.</div>
+      </aside>
+    </div>
+    <p class="foot">Estimates only. Float pays 1% cashback on card spend above $25,000 a month, counted separately for CAD and USD. The total converts USD at an illustrative 1.37.</p>
+  </section>`;
+}
+
+function fundsPanel(){
+  if (!S.funds) return '<div class="spacer"></div>';
+  if (S.funds === 'done') {
+    return `<section class="card funds" id="funds">
+      <div class="eyebrow">Add funds</div>
+      <div class="success"><b>Transfer started.</b> ${fmtCur(F.amt, F.cur)} is on its way to your ${F.cur} account and should arrive in 1 to 3 business days.</div>
+      <div class="actions"><button class="btn secondary" data-action="fundsclose">Done</button></div>
+    </section>`;
+  }
+  return `<section class="card funds" id="funds">
+    <div class="eyebrow">Add funds</div>
+    <h2>Move money into Float</h2>
+    <div class="funds-grid">
+      <div><label for="f-cur">To</label>
+        <select id="f-cur" data-fund="cur">
+          <option value="CAD" ${F.cur === 'CAD' ? 'selected' : ''}>Float CAD account</option>
+          <option value="USD" ${F.cur === 'USD' ? 'selected' : ''}>Float USD account</option>
+        </select></div>
+      <div><label for="f-amt">Amount</label>
+        <input id="f-amt" type="number" min="0" step="1000" value="${F.amt}" data-fund="amt"></div>
+      <div><label for="f-from">From</label>
+        <select id="f-from" data-fund="from">
+          <option value="chequing">Business chequing ending 2231</option>
+          <option value="new">Link a different bank account</option>
+        </select></div>
+    </div>
+    <p class="small muted" id="fund-note"></p>
+    <div class="actions">
+      <button class="btn" data-action="fundssubmit">Start transfer</button>
+      <button class="btn secondary" data-action="fundsclose">Cancel</button>
+    </div>
+  </section>`;
+}
+
+/* ---------- Live updates ---------- */
+function recompute(){
+  const n = calcNumbers();
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  set('out-save', fmt(n.save));
+  set('out-cadInt', fmt(n.cadInt));
+  set('out-usdInt', fmtUsd(n.usdInt));
+  set('out-fxSave', fmt(n.fxSave));
+  set('out-cb', fmt(n.cb));
+  set('out-cbCad', fmt(n.cbCad));
+  set('out-cbUsd', fmtUsd(n.cbUsd));
+  [['spendCad', fmt], ['spendUsd', fmtUsd]].forEach(([key, f]) => {
+    const bar = document.getElementById('bar-' + key), note = document.getElementById('note-' + key);
+    if (!bar) return;
+    const spend = C[key], over = spend > CASHBACK_THRESHOLD;
+    bar.classList.toggle('over', over);
+    bar.querySelector('span').style.width = Math.min(spend / (CASHBACK_THRESHOLD * 2), 1) * 100 + '%';
+    note.textContent = over
+      ? `Earning 1% on ${f(spend - CASHBACK_THRESHOLD)} a month above the $25,000 threshold.`
+      : `${f(CASHBACK_THRESHOLD - spend)} more a month starts earning cashback.`;
+  });
+  updateFundNote();
+}
+
+function updateFundNote(){
+  const el = document.getElementById('fund-note'); if (!el) return;
+  el.textContent = S.variant === 'cashback'
+    ? 'Arrives in 1 to 3 business days. Your Float cards spend from this balance.'
+    : `Arrives in 1 to 3 business days. At 2.5%, ${fmtCur(F.amt, F.cur)} earns about ${fmtCur(F.amt * INTEREST_RATE, F.cur)} a year.`;
+}
+
+function fundDefault(cur){
+  if (S.variant === 'cashback') return cur === 'USD' ? C.spendUsd : C.spendCad;
+  return cur === 'USD' ? C.usd : C.cad;
+}
+
+function render(){
+  renderVariantBar();
+  const app = document.getElementById('app');
+  if (S.variant === 'baseline') app.innerHTML = baselineHome();
+  else app.innerHTML = (S.variant === 'savings' ? savingsCalc() : cashbackCalc()) + fundsPanel() + guideCards();
+  recompute();
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]'); if (!b) return;
+  const {action, id} = b.dataset;
+  if (action === 'variant') { S.variant = id; S.funds = null; render(); window.scrollTo(0,0); return; }
+  if (action === 'home') { render(); window.scrollTo(0,0); return; }
+  if (action === 'stub') {
+    toast(S.variant === 'baseline'
+      ? "Baseline: this is today's Welcome Guide. Switch views to see the test."
+      : 'Prototype: only the calculator and Add funds are built.');
+    return;
+  }
+  if (S.variant === 'baseline') return;
+  switch (action) {
+    case 'addfunds':
+      F.cur = 'CAD'; F.amt = fundDefault('CAD'); S.funds = 'form'; render();
+      document.getElementById('funds').scrollIntoView({behavior:'smooth', block:'center'});
+      break;
+    case 'fundssubmit':
+      if (!(F.amt > 0)) { toast('Enter an amount to transfer.'); return; }
+      S.funds = 'done'; render();
+      document.getElementById('funds').scrollIntoView({block:'center'});
+      break;
+    case 'fundsclose': S.funds = null; render(); break;
+  }
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.field) {
+    const key = t.dataset.field;
+    const max = Number(t.max) || Infinity;
+    const val = Math.min(Math.max(0, Number(t.value) || 0), max);
+    C[key] = val;
+    const other = document.querySelector(`[data-field="${key}"][data-kind="${t.dataset.kind === 'num' ? 'range' : 'num'}"]`);
+    if (other) other.value = val;
+    recompute();
+  }
+  if (t.dataset.fund === 'amt') { F.amt = Math.max(0, Number(t.value) || 0); updateFundNote(); }
+});
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.fund === 'cur') {
+    F.cur = t.value; F.amt = fundDefault(F.cur);
+    document.getElementById('f-amt').value = F.amt; updateFundNote();
+  }
+  if (t.dataset.fund === 'from' && t.value === 'new') toast('Prototype: this would open bank linking.');
+  if (t.dataset.field && t.dataset.kind === 'num') t.value = C[t.dataset.field];
+});
+
+renderSide();
+render();
+</script>
