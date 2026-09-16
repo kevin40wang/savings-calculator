@@ -97,11 +97,22 @@
   .numwrap input:focus{outline:none}
   .numwrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,91,234,.14)}
   input[type=range]{width:100%;accent-color:var(--blue);margin:12px 0 2px}
-  .thresh{position:relative;height:8px;background:var(--line);border-radius:6px;margin:10px 0 6px}
-  .thresh span{display:block;height:100%;border-radius:6px;background:#aab4cc}
-  .thresh.over span{background:var(--blue)}
-  .thresh i{position:absolute;left:50%;top:-4px;width:2px;height:16px;background:var(--ink);border-radius:1px}
-  .thresh-note{font-size:13px;color:var(--muted)}
+  .thresh-note{font-size:13px;color:var(--muted);margin-top:2px}
+  .slider{position:relative;height:54px;margin-top:6px}
+  .slider .track{position:absolute;top:18px;left:0;right:0;height:10px;border-radius:6px;background:#e7eaf0;overflow:hidden}
+  .slider .zone{position:absolute;top:0;bottom:0;right:0;background:rgba(47,91,234,.14)}
+  .slider .fill{position:absolute;top:0;bottom:0;left:0;width:0;background:#aab4cc}
+  .slider.over .fill{background:var(--blue)}
+  .slider .mark{position:absolute;top:12px;width:2px;height:22px;margin-left:-1px;background:var(--ink);opacity:.45;border-radius:1px}
+  .slider .mark-label{position:absolute;top:37px;transform:translateX(-50%);font-size:11.5px;color:var(--muted);white-space:nowrap;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .slider .mark-label:hover{color:var(--ink)}
+  .slider input[type=range]{position:absolute;top:12px;left:0;width:100%;height:22px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;z-index:2}
+  .slider input[type=range]::-webkit-slider-runnable-track{height:22px;background:transparent}
+  .slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--blue);box-shadow:0 1px 4px rgba(22,24,28,.28);cursor:pointer}
+  .slider input[type=range]::-moz-range-track{height:22px;background:transparent}
+  .slider input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--blue);box-shadow:0 1px 4px rgba(22,24,28,.28);cursor:pointer}
+  .slider input[type=range]:focus-visible{outline:none}
+  .slider input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(47,91,234,.32)}
   .calc-summary{background:var(--soft);border-radius:14px;padding:24px}
   .total-num{font-size:42px;font-weight:700;letter-spacing:-.02em;color:var(--blue);line-height:1.1;margin:4px 0 6px}
   .rule{font-size:13px;color:var(--muted);margin-bottom:12px}
@@ -320,13 +331,23 @@ function baselineHome(){
 }
 
 /* ---------- Calculators ---------- */
-function field(key, label, max, step, prefix){
+function field(key, label, max, step, prefix, threshold){
+  const range = `<input type="range" min="0" max="${max}" step="${step}" value="${Math.min(C[key], max)}" data-field="${key}" data-kind="range" aria-label="${label}">`;
+  const at = threshold ? threshold / max * 100 : 0;
+  const control = threshold
+    ? `<div class="slider" id="sl-${key}" data-max="${max}">
+        <div class="track"><span class="zone" style="left:${at}%"></span><span class="fill"></span></div>
+        <div class="mark" style="left:${at}%"></div>
+        <button class="mark-label" style="left:${at}%" data-action="snap" data-id="${key}">${prefix}25k minimum</button>
+        ${range}
+      </div>`
+    : range;
   return `<div class="field">
     <div class="field-top">
       <label for="n-${key}">${label}</label>
       <span class="numwrap">${prefix}<input id="n-${key}" type="number" min="0" max="${max}" step="${step}" value="${C[key]}" data-field="${key}" data-kind="num"></span>
     </div>
-    <input type="range" min="0" max="${max}" step="${step}" value="${Math.min(C[key], max)}" data-field="${key}" data-kind="range" aria-label="${label}">
+    ${control}
   </div>`;
 }
 
@@ -365,11 +386,9 @@ function cashbackCalc(){
         <div class="eyebrow">Cashback calculator</div>
         <h1>See what your card spend could earn back</h1>
         <p class="lead muted">Pre-filled from your signup. Adjust anything to match your business.</p>
-        ${field('spendCad', 'Monthly card spend in CAD', 200000, 500, '$')}
-        <div class="thresh" id="bar-spendCad" aria-hidden="true"><span></span><i></i></div>
+        ${field('spendCad', 'Monthly card spend in CAD', 100000, 500, '$', CASHBACK_THRESHOLD)}
         <div class="thresh-note" id="note-spendCad"></div>
-        ${field('spendUsd', 'Monthly card spend in USD', 200000, 500, 'US$')}
-        <div class="thresh" id="bar-spendUsd" aria-hidden="true"><span></span><i></i></div>
+        ${field('spendUsd', 'Monthly card spend in USD', 100000, 500, 'US$', CASHBACK_THRESHOLD)}
         <div class="thresh-note" id="note-spendUsd"></div>
       </div>
       <aside class="calc-summary">
@@ -432,14 +451,16 @@ function recompute(){
   set('out-cbCad', fmt(n.cbCad));
   set('out-cbUsd', fmtUsd(n.cbUsd));
   [['spendCad', fmt], ['spendUsd', fmtUsd]].forEach(([key, f]) => {
-    const bar = document.getElementById('bar-' + key), note = document.getElementById('note-' + key);
-    if (!bar) return;
-    const spend = C[key], over = spend > CASHBACK_THRESHOLD;
-    bar.classList.toggle('over', over);
-    bar.querySelector('span').style.width = Math.min(spend / (CASHBACK_THRESHOLD * 2), 1) * 100 + '%';
+    const sl = document.getElementById('sl-' + key), note = document.getElementById('note-' + key);
+    if (!sl) return;
+    const max = Number(sl.dataset.max), spend = C[key], over = spend > CASHBACK_THRESHOLD;
+    sl.classList.toggle('over', over);
+    sl.querySelector('.fill').style.width = Math.min(spend / max, 1) * 100 + '%';
     note.textContent = over
-      ? `Earning 1% on ${f(spend - CASHBACK_THRESHOLD)} a month above the $25,000 threshold.`
-      : `${f(CASHBACK_THRESHOLD - spend)} more a month starts earning cashback.`;
+      ? `Earning 1% on ${f(spend - CASHBACK_THRESHOLD)} a month above the minimum.`
+      : spend === CASHBACK_THRESHOLD
+        ? 'Right at the minimum. Every dollar above it earns 1%.'
+        : `${f(CASHBACK_THRESHOLD - spend)} more a month starts earning cashback.`;
   });
   updateFundNote();
 }
@@ -488,6 +509,11 @@ document.addEventListener('click', e => {
       document.getElementById('funds').scrollIntoView({block:'center'});
       break;
     case 'fundsclose': S.funds = null; render(); break;
+    case 'snap':
+      C[id] = CASHBACK_THRESHOLD;
+      document.querySelectorAll(`[data-field="${id}"]`).forEach(el => { el.value = CASHBACK_THRESHOLD; });
+      recompute();
+      break;
   }
 });
 
