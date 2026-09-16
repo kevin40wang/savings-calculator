@@ -122,13 +122,24 @@
   .calc-summary .btn + .btn{margin-top:8px}
   .sum-note{font-size:12.5px;color:var(--muted);margin-top:10px;text-align:center}
 
-  .funds{padding:28px 32px;margin-bottom:48px;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,91,234,.12)}
-  .funds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0 10px}
-  .funds-grid label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
-  .funds-grid select,.funds-grid input{width:100%}
-  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
-  .success{background:var(--good-soft);border-radius:10px;padding:14px 16px;margin-top:6px}
   .spacer{height:24px}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(16,18,22,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+  .modal{background:#fff;border-radius:14px;width:min(520px,100%);max-height:90vh;overflow-y:auto;padding:22px 24px 16px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .modal-head h2{font-size:19px;margin:0}
+  .modal-close{background:none;border:0;font-size:17px;line-height:1;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:6px}
+  .modal-close:hover{background:#f0f1f3;color:var(--ink)}
+  .modal-sub{color:#3a3e46;margin:6px 0 16px}
+  .opt-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer}
+  .opt-card + .opt-card{margin-top:10px}
+  .opt-card:hover{border-color:var(--ink)}
+  .opt-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .opt-ico.interac{background:#f26522;color:#fff;font-size:10.5px;font-weight:700}
+  .opt-ico.bank{background:#eceef2;color:#3a3e46;border-radius:50%}
+  .opt-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .opt-txt b{font-size:16px;font-weight:600}
+  .opt-card .i{color:var(--muted)}
+  .modal-foot{font-size:11.5px;color:var(--muted);margin:16px 0 0}
 
   @media (max-width:1180px){
     .wh{grid-template-columns:1fr;gap:26px}
@@ -153,8 +164,7 @@
     .guide-head svg.illus{width:56px;height:56px}
     .calc{padding:22px}
     .calc h1{font-size:24px}
-    .funds{padding:22px}
-    .funds-grid{grid-template-columns:1fr}
+    .modal{padding:18px}
     .variantbar .cap{text-align:center}
   }
 </style>
@@ -248,7 +258,6 @@ const VARIANTS = [
 ];
 const S = { variant:'baseline', funds:null };
 const C = { cad:150000, usd:25000, fx:58000, spendCad:32000, spendUsd:12000 };
-const F = { cur:'CAD', amt:150000 };
 
 const fmt = n => '$' + Math.round(n).toLocaleString('en-CA');
 const fmtUsd = n => 'US$' + Math.round(n).toLocaleString('en-CA');
@@ -408,38 +417,30 @@ function cashbackCalc(){
   </section>`;
 }
 
-function fundsPanel(){
-  if (!S.funds) return '<div class="spacer"></div>';
-  if (S.funds === 'done') {
-    return `<section class="card funds" id="funds">
-      <div class="eyebrow">Add funds</div>
-      <div class="success"><b>Transfer started.</b> ${fmtCur(F.amt, F.cur)} is on its way to your ${F.cur} account and should arrive in 1 to 3 business days.</div>
-      <div class="actions"><button class="btn secondary" data-action="fundsclose">Done</button></div>
-    </section>`;
-  }
-  return `<section class="card funds" id="funds">
-    <div class="eyebrow">Add funds</div>
-    <h2>Move money into Float</h2>
-    <div class="funds-grid">
-      <div><label for="f-cur">To</label>
-        <select id="f-cur" data-fund="cur">
-          <option value="CAD" ${F.cur === 'CAD' ? 'selected' : ''}>Float CAD account</option>
-          <option value="USD" ${F.cur === 'USD' ? 'selected' : ''}>Float USD account</option>
-        </select></div>
-      <div><label for="f-amt">Amount</label>
-        <input id="f-amt" type="number" min="0" step="1000" value="${F.amt}" data-fund="amt"></div>
-      <div><label for="f-from">From</label>
-        <select id="f-from" data-fund="from">
-          <option value="chequing">Business chequing ending 2231</option>
-          <option value="new">Link a different bank account</option>
-        </select></div>
+const BANK_GLYPH = `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5H3zM5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>`;
+
+function fundsModal(){
+  if (!S.funds) return '';
+  return `<div class="modal-backdrop" data-action="fundsclose">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" data-action="noop">
+      <div class="modal-head">
+        <h2 id="modal-title">Add Funds</h2>
+        <button class="modal-close" data-action="fundsclose" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-sub">Top-up your account.</p>
+      <button class="opt-card" data-action="fundopt" data-id="interac">
+        <span class="opt-ico interac">interac</span>
+        <span class="opt-txt"><b>Interac e-Transfer<sup>®</sup></b><span class="small muted">⚡ Instant · Up to $25,000</span></span>
+        ${icon('right')}
+      </button>
+      <button class="opt-card" data-action="fundopt" data-id="bank">
+        <span class="opt-ico bank">${BANK_GLYPH}</span>
+        <span class="opt-txt"><b>Connect a Bank</b><span class="small muted">Bank transfers take 3-5 business days</span></span>
+        ${icon('right')}
+      </button>
+      <p class="modal-foot">The INTERAC logo and INTERAC e-Transfer are registered trademarks of Interac Corp. Used under licence.</p>
     </div>
-    <p class="small muted" id="fund-note"></p>
-    <div class="actions">
-      <button class="btn" data-action="fundssubmit">Start transfer</button>
-      <button class="btn secondary" data-action="fundsclose">Cancel</button>
-    </div>
-  </section>`;
+  </div>`;
 }
 
 /* ---------- Live updates ---------- */
@@ -465,26 +466,13 @@ function recompute(){
         ? 'Right at the minimum. Every dollar above it earns 1%.'
         : `${f(CASHBACK_THRESHOLD - spend)} more a month starts earning cashback.`;
   });
-  updateFundNote();
-}
-
-function updateFundNote(){
-  const el = document.getElementById('fund-note'); if (!el) return;
-  el.textContent = S.variant === 'cashback'
-    ? 'Arrives in 1 to 3 business days. Your Float cards spend from this balance.'
-    : `Arrives in 1 to 3 business days. At 2.5%, ${fmtCur(F.amt, F.cur)} earns about ${fmtCur(F.amt * INTEREST_RATE, F.cur)} a year.`;
-}
-
-function fundDefault(cur){
-  if (S.variant === 'cashback') return cur === 'USD' ? C.spendUsd : C.spendCad;
-  return cur === 'USD' ? C.usd : C.cad;
 }
 
 function render(){
   renderVariantBar();
   const app = document.getElementById('app');
   if (S.variant === 'baseline') app.innerHTML = baselineHome();
-  else app.innerHTML = (S.variant === 'savings' ? savingsCalc() : cashbackCalc()) + fundsPanel() + guideCards();
+  else app.innerHTML = (S.variant === 'savings' ? savingsCalc() : cashbackCalc()) + '<div class="spacer"></div>' + guideCards() + fundsModal();
   recompute();
 }
 
@@ -502,16 +490,14 @@ document.addEventListener('click', e => {
   }
   if (S.variant === 'baseline') return;
   switch (action) {
-    case 'addfunds':
-      F.cur = 'CAD'; F.amt = fundDefault('CAD'); S.funds = 'form'; render();
-      document.getElementById('funds').scrollIntoView({behavior:'smooth', block:'center'});
-      break;
-    case 'fundssubmit':
-      if (!(F.amt > 0)) { toast('Enter an amount to transfer.'); return; }
-      S.funds = 'done'; render();
-      document.getElementById('funds').scrollIntoView({block:'center'});
-      break;
+    case 'addfunds': S.funds = true; render(); break;
     case 'fundsclose': S.funds = null; render(); break;
+    case 'noop': break;
+    case 'fundopt':
+      toast(id === 'interac'
+        ? 'Prototype: this would open Interac e-Transfer setup.'
+        : 'Prototype: this would open bank connection.');
+      break;
     case 'charge': toast('Prototype: this would start a Float Charge application.'); break;
     case 'snap':
       C[id] = CASHBACK_THRESHOLD;
@@ -532,17 +518,15 @@ document.addEventListener('input', e => {
     if (other) other.value = val;
     recompute();
   }
-  if (t.dataset.fund === 'amt') { F.amt = Math.max(0, Number(t.value) || 0); updateFundNote(); }
 });
 
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.fund === 'cur') {
-    F.cur = t.value; F.amt = fundDefault(F.cur);
-    document.getElementById('f-amt').value = F.amt; updateFundNote();
-  }
-  if (t.dataset.fund === 'from' && t.value === 'new') toast('Prototype: this would open bank linking.');
   if (t.dataset.field && t.dataset.kind === 'num') t.value = C[t.dataset.field];
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.funds) { S.funds = null; render(); }
 });
 
 renderSide();
