@@ -119,6 +119,7 @@
   .sum-row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:#3a3e46;padding:9px 0;border-top:1px solid #dde2ea}
   .sum-row b{color:var(--ink);white-space:nowrap}
   .calc-summary .btn{width:100%;margin-top:18px}
+  .calc-summary .btn + .btn{margin-top:8px}
   .sum-note{font-size:12.5px;color:var(--muted);margin-top:10px;text-align:center}
 
   .funds{padding:28px 32px;margin-bottom:48px;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,91,234,.12)}
@@ -160,7 +161,7 @@
 
 <div class="banner">Concept prototype for a Float Growth PM case study · illustrative data · not an official Float product</div>
 <div class="variantbar" id="variantbar"></div>
-<div class="mobilebar"><div class="logo">f<span class="av">PR</span></div><b>Larkspur Creative</b></div>
+<div class="mobilebar"><div class="logo">f<span class="av">KW</span></div><b>Larkspur Creative</b></div>
 <div class="shell">
   <aside class="side" id="side"></aside>
   <div class="mainwrap"><main class="panel" id="app"></main></div>
@@ -203,7 +204,7 @@ const NAV = [
 function renderSide(){
   document.getElementById('side').innerHTML = `
     <div class="org">
-      <div class="logo">f<span class="av">PR</span></div>
+      <div class="logo">f<span class="av">KW</span></div>
       <div class="org-name">Larkspur Creative</div>
       <button class="icon-btn" data-action="stub" aria-label="Switch organization">${icon('updown')}</button>
       <button class="icon-btn" data-action="stub" aria-label="Search">${icon('search')}</button>
@@ -315,7 +316,7 @@ function baselineHome(){
   return `
   <section class="card wh">
     <div>
-      <h1>Welcome to Float, Priya!</h1>
+      <h1>Welcome to Float, Kevin!</h1>
       <p class="intro"><b>The future of finance is here.</b> Manage your spend, track expenses, and pay bills — all in one easy-to-use platform.</p>
       <p class="chat">${icon('chat')} Have questions? <button class="link" data-action="stub"><b>Let's Chat!</b></button></p>
       <p class="small muted" style="margin:0">You can also visit our <button class="link small" data-action="stub">Help Centre</button> for more information and how-to guides.</p>
@@ -371,6 +372,7 @@ function savingsCalc(){
         <div class="sum-row"><span>Interest on USD</span><b id="out-usdInt"></b></div>
         <div class="sum-row"><span>FX savings vs. a big bank</span><b id="out-fxSave"></b></div>
         <button class="btn lg" data-action="addfunds">Add funds</button>
+        <button class="btn secondary lg" data-action="charge">Apply for Float Charge</button>
         <div class="sum-note">Interest starts the day your funds land.</div>
       </aside>
     </div>
@@ -398,6 +400,7 @@ function cashbackCalc(){
         <div class="sum-row"><span>On CAD spend</span><b id="out-cbCad"></b></div>
         <div class="sum-row"><span>On USD spend</span><b id="out-cbUsd"></b></div>
         <button class="btn lg" data-action="addfunds">Add funds</button>
+        <button class="btn secondary lg" data-action="charge">Apply for Float Charge</button>
         <div class="sum-note">Your Float cards spend from this balance.</div>
       </aside>
     </div>
@@ -509,6 +512,7 @@ document.addEventListener('click', e => {
       document.getElementById('funds').scrollIntoView({block:'center'});
       break;
     case 'fundsclose': S.funds = null; render(); break;
+    case 'charge': toast('Prototype: this would start a Float Charge application.'); break;
     case 'snap':
       C[id] = CASHBACK_THRESHOLD;
       document.querySelectorAll(`[data-field="${id}"]`).forEach(el => { el.value = CASHBACK_THRESHOLD; });
