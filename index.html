@@ -113,6 +113,12 @@
   .slider input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--blue);box-shadow:0 1px 4px rgba(22,24,28,.28);cursor:pointer}
   .slider input[type=range]:focus-visible{outline:none}
   .slider input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(47,91,234,.32)}
+  .rate-row{display:flex;align-items:center;gap:10px;margin-top:16px}
+  .rate-box{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#eef3fe;border:1px solid #cddafa;border-radius:10px;padding:10px 14px}
+  .rate-box .lbl{font-size:15px;color:#2b2e35}
+  .rate-box .lbl b{color:var(--blue);font-weight:700;margin-left:6px}
+  .rate-note{font-size:13px;color:var(--muted)}
+  .rate-info{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0}
   .calc-summary{background:var(--soft);border-radius:14px;padding:24px}
   .total-num{font-size:42px;font-weight:700;letter-spacing:-.02em;color:var(--blue);line-height:1.1;margin:4px 0 6px}
   .rule{font-size:13px;color:var(--muted);margin-bottom:12px}
@@ -368,7 +374,14 @@ function savingsCalc(){
       <div>
         <div class="eyebrow">Savings calculator</div>
         <h1>See what your cash could earn at Float</h1>
-        <p class="lead muted">Your rate is 3.5%: Float's base 2.5%, plus an extra 1% for 12 months from opt-in on new funds added after June 1st.</p>
+        <p class="lead muted">Earn an extra 1% for 12 months from opt-in on new funds added after June 1st.</p>
+        <div class="rate-row">
+          <div class="rate-box">
+            <span class="lbl">Your rate:<b>${(INTEREST_RATE * 100).toFixed(2)}%</b></span>
+            <span class="rate-note">2.5% + 1% for 12 months = 3.5%</span>
+          </div>
+          <span class="rate-info" title="New funds added to Float after June 1st earn an additional 1% for 12 months from opt-in, on top of the base 2.5% rate.">i</span>
+        </div>
         ${field('cad', 'Average CAD balance', 1000000, 1000, '$')}
         ${field('usd', 'Average USD balance', 1000000, 1000, 'US$')}
         ${field('fx', 'USD transfers per month', 500000, 1000, '$')}
