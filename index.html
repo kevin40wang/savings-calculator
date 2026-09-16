@@ -86,7 +86,7 @@
 
   /* Calculators */
   .calc{padding:38px 40px 30px;margin-bottom:24px}
-  .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:40px;align-items:start}
+  .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:40px;align-items:end}
   .calc h1{font-size:30px;margin:6px 0 8px}
   .calc .lead{font-size:16px;margin:0 0 6px}
   .field{padding:16px 0 4px}
@@ -118,7 +118,11 @@
   .rate-box .lbl{font-size:15px;color:#2b2e35}
   .rate-box .lbl b{color:var(--blue);font-weight:700;margin-left:6px}
   .rate-note{font-size:13px;color:var(--muted)}
-  .rate-info{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0}
+  .rate-info{position:relative;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+  .rate-info:hover{border-color:var(--ink);color:var(--ink)}
+  .rate-tip{position:absolute;top:30px;right:-4px;z-index:5;display:none;width:min(320px,70vw);background:var(--ink);color:#fff;font-size:13px;font-weight:400;line-height:1.45;text-align:left;padding:12px 14px;border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,.28)}
+  .rate-tip::after{content:"";position:absolute;top:-5px;right:12px;width:11px;height:11px;background:var(--ink);transform:rotate(45deg);border-radius:2px}
+  .rate-info:hover .rate-tip,.rate-info:focus-visible .rate-tip,.rate-info.on .rate-tip{display:block}
   .calc-summary{background:var(--soft);border-radius:14px;padding:24px}
   .total-num{font-size:42px;font-weight:700;letter-spacing:-.02em;color:var(--blue);line-height:1.1;margin:4px 0 6px}
   .rule{font-size:13px;color:var(--muted);margin-bottom:12px}
@@ -380,7 +384,7 @@ function savingsCalc(){
             <span class="lbl">Your rate:<b>${(INTEREST_RATE * 100).toFixed(2)}%</b></span>
             <span class="rate-note">2.5% + 1% for 12 months = 3.5%</span>
           </div>
-          <span class="rate-info" title="New funds added to Float after June 1st earn an additional 1% for 12 months from opt-in, on top of the base 2.5% rate.">i</span>
+          <button class="rate-info" data-action="ratetip" aria-label="How your rate works">i<span class="rate-tip" role="tooltip">New funds added to Float after June 1st earn an additional 1% for 12 months from opt-in, on top of the base 2.5% rate.</span></button>
         </div>
         ${field('cad', 'Average CAD balance', 1000000, 1000, '$')}
         ${field('usd', 'Average USD balance', 1000000, 1000, 'US$')}
@@ -510,6 +514,7 @@ document.addEventListener('click', e => {
         : 'Prototype: this would open bank connection.');
       break;
     case 'charge': toast('Prototype: this would start a Float Charge application.'); break;
+    case 'ratetip': b.classList.toggle('on'); break;
     case 'snap':
       C[id] = CASHBACK_THRESHOLD;
       document.querySelectorAll(`[data-field="${id}"]`).forEach(el => { el.value = CASHBACK_THRESHOLD; });
