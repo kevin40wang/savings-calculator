@@ -243,7 +243,7 @@ const EXPLORE = `<svg class="illus" width="76" height="76" viewBox="0 0 64 64" a
 </svg>`;
 
 /* ---------- Float rules used by the calculators ---------- */
-const INTEREST_RATE = 0.025;       // base rate on CAD and USD balances (12-month promo boost deliberately excluded)
+const INTEREST_RATE = 0.035;       // 2.5% base plus the extra 1% for 12 months on new funds added after June 1st
 const FLOAT_FX = 0.0025;           // Float FX fee
 const BANK_FX = 0.03;              // Float's published big-bank FX average
 const CASHBACK_RATE = 0.01;        // 1% cashback
@@ -368,7 +368,7 @@ function savingsCalc(){
       <div>
         <div class="eyebrow">Savings calculator</div>
         <h1>See what your cash could earn at Float</h1>
-        <p class="lead muted">Pre-filled from your signup. Adjust anything to match your business.</p>
+        <p class="lead muted">Your rate is 3.5%: Float's base 2.5%, plus an extra 1% for 12 months from opt-in on new funds added after June 1st.</p>
         ${field('cad', 'Average CAD balance', 1000000, 1000, '$')}
         ${field('usd', 'Average USD balance', 1000000, 1000, 'US$')}
         ${field('fx', 'USD transfers per month', 500000, 1000, '$')}
@@ -384,7 +384,7 @@ function savingsCalc(){
         <div class="sum-note">Interest starts the day your funds land.</div>
       </aside>
     </div>
-    <p class="foot">Estimates only. Interest is 2.5% on CAD and USD balances, paid monthly, and rates can change. FX savings compare Float's 0.25% with a big-bank average of about 3%. The total converts USD at an illustrative 1.37.</p>
+    <p class="foot">Estimates only. The 3.5% rate is Float's base 2.5% on CAD and USD balances plus an extra 1% for 12 months from opt-in, on new funds added after June 1st. Interest is paid monthly and rates can change. FX savings compare Float's 0.25% with a big-bank average of about 3%. The total converts USD at an illustrative 1.37.</p>
   </section>`;
 }
 
